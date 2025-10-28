@@ -47,6 +47,7 @@
 #include "html/wifi_medium_svg.h"
 #include "html/wifi_low_svg.h"
 #include "html/wifi_off_svg.h"
+#include "html/neas_logo_green_svg.h"
 
 #if defined(ESP32)
 #include <esp_task_wdt.h>
@@ -137,6 +138,7 @@ void AmsWebServer::setup(AmsConfiguration* config, GpioConfig* gpioConfig, AmsDa
 	server.on(context + F("/favicon.svg"), HTTP_GET, std::bind(&AmsWebServer::faviconSvg, this)); 
 	server.on(context + F("/logo.svg"), HTTP_GET, std::bind(&AmsWebServer::logoSvg, this)); 
 	server.on(context + F("/neas_logotype_white.svg"), HTTP_GET, std::bind(&AmsWebServer::neasLogoSvg, this));
+	server.on(context + F("/neas_logo_green.svg"), HTTP_GET, std::bind(&AmsWebServer::neasLogoGreenSvg, this));
 	server.on(context + F("/wifi-high-light.svg"), HTTP_GET, std::bind(&AmsWebServer::wifiHighLightSvg, this));
 	server.on(context + F("/wifi-medium-light.svg"), HTTP_GET, std::bind(&AmsWebServer::wifiMediumLightSvg, this));
 	server.on(context + F("/wifi-low-light.svg"), HTTP_GET, std::bind(&AmsWebServer::wifiLowLightSvg, this));
@@ -356,6 +358,10 @@ void AmsWebServer::logoSvg() {
 
 void AmsWebServer::neasLogoSvg() {
     server.send_P(200, "image/svg+xml", NEAS_LOGOTYPE_WHITE_SVG, NEAS_LOGOTYPE_WHITE_SVG_LEN);
+}
+
+void AmsWebServer::neasLogoGreenSvg() {
+	server.send_P(200, "image/svg+xml", NEAS_LOGO_GREEN_SVG, NEAS_LOGO_GREEN_SVG_LEN);
 }
 
 void AmsWebServer::wifiHighLightSvg() {
