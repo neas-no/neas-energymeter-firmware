@@ -31,7 +31,7 @@ if os.path.exists(srcroot):
 os.makedirs(srcroot, exist_ok=True)
 
 # Folders to scan
-webroots = ["lib/SvelteUi/app/dist", "lib/SvelteUi/json"]
+webroots = ["lib/SvelteUi/app/dist", "lib/SvelteUi/json", "lib/SvelteUi/app/src/assets"]
 
 for webroot in webroots:
     if not os.path.exists(webroot):
