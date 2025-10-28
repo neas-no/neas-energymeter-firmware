@@ -25,6 +25,7 @@
         describePresetSummary,
     } from "./meterPresets.js";
     import NeasLogo from "./../assets/neas_logotype_white.svg";
+    import NeasLogoGreen from "./../assets/neas_logo_green.svg";
 
     const WIFI_ICON_MAP = {
         high: WifiHighIcon,
@@ -275,21 +276,16 @@
         : [];
 </script>
 
-<div class="min-h-screen bg-neas-green flex flex-col items-center p-4">
+<div class="min-h-screen bg-white sm:bg-neas-green flex flex-col items-center p-0 sm:p-4">
     <!-- Neas Logo -->
-    <div class="mb-8">
-        <svg
-            class="w-20 h-20 text-blue-600 dark:text-blue-400"
-            viewBox="0 0 100 100"
-            fill="currentColor"
-        >
-            <img alt="Neas logo" src={NeasLogo} class="w-36 h-auto" />
-        </svg>
+    <div class="mb-4 sm:mb-8 mt-8 sm:mt-0">
+        <img alt="Neas logo" src={NeasLogoGreen} class="w-36 h-auto sm:hidden" />
+        <img alt="Neas logo" src={NeasLogo} class="w-36 h-auto hidden sm:block" />
     </div>
 
     <!-- Main Card -->
     <div
-        class="bg-white dark:white border border-neas-lightgreen-30 shadow-xl shadow-black/10 rounded-3xl max-w-md w-full p-8"
+        class="bg-white dark:white border-0 sm:border sm:border-neas-lightgreen-30 shadow-none sm:shadow-xl sm:shadow-black/10 rounded-none sm:rounded-3xl max-w-none sm:max-w-md w-full flex-1 sm:flex-none p-6 sm:p-8"
     >
         <form on:submit|preventDefault={handleSubmit}>
             <input type="hidden" name="s" value="true" />
