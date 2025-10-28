@@ -122,6 +122,7 @@ private:
 	void faviconSvg();
 	void logoSvg();
 	void neasLogoSvg();
+	void neasLogoGreenSvg();
 	void wifiHighLightSvg();
 	void wifiMediumLightSvg();
 	void wifiLowLightSvg();
