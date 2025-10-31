@@ -346,11 +346,21 @@
         : [];
 </script>
 
-<div class="min-h-screen bg-white sm:bg-neas-green flex flex-col items-center p-0 sm:p-4">
+<div
+    class="min-h-screen bg-white sm:bg-neas-green flex flex-col items-center p-0 sm:p-4"
+>
     <!-- Neas Logo -->
     <div class="mb-4 sm:mb-8 mt-8 sm:mt-0">
-        <img alt="Neas logo" src={NeasLogoGreen} class="w-36 h-auto sm:hidden" />
-        <img alt="Neas logo" src={NeasLogo} class="w-36 h-auto hidden sm:block" />
+        <img
+            alt="Neas logo"
+            src={NeasLogoGreen}
+            class="w-36 h-auto sm:hidden"
+        />
+        <img
+            alt="Neas logo"
+            src={NeasLogo}
+            class="w-36 h-auto hidden sm:block"
+        />
     </div>
 
     <!-- Main Card -->
@@ -533,8 +543,10 @@
                             {#if data?.mt}
                                 <p class="text-xs text-green-600 mb-2">
                                     Målertype fra payload: {data.mt}
-                                    {#if data?.ds} | Distribusjonssystem: {data.ds}{/if}
-                                    {#if data?.hm !== undefined} | HAN-status: {data.hm}{/if}
+                                    {#if data?.ds}
+                                        | Distribusjonssystem: {data.ds}{/if}
+                                    {#if data?.hm !== undefined}
+                                        | HAN-status: {data.hm}{/if}
                                 </p>
                             {/if}
                             {#if autoDetectionResults.reasoning.length > 0}
