@@ -108,8 +108,8 @@
             loading = false;
             const hubLabel = translations.consent?.load_from_server ?? 'Load from server';
             languages = [
+                { code: 'no', name: 'Norsk'},
                 { code: 'en', name: 'English'},
-                { code: 'no', name: 'Norsk'}
             ];
             if(!configuration?.fw) {
                 configuration = {
