@@ -43,7 +43,6 @@ struct AdcConfig {
 class HwTools {
 public:
     bool applyBoardConfig(uint8_t boardType, GpioConfig& gpioConfig, MeterConfig& meterConfig, uint8_t hanPin);
-    uint8_t getOptimalHanPin(uint8_t boardType, uint8_t requestedPin = 0);
     void setup(SystemConfig* sys, GpioConfig* gpio);
     float getVcc();
     uint8_t getTempSensorCount();

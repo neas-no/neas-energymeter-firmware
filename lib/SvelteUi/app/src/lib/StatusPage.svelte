@@ -3,7 +3,6 @@
     import { getSysinfo, sysinfoStore } from './DataStores.js';
     import { upgrade, upgradeWarningText } from './UpgradeHelper';
     import { translationsStore } from './TranslationService.js';
-    import { Link } from 'svelte-navigator';
     import Clock from './Clock.svelte';
     import Mask from './Mask.svelte';
     import { scanForDevice } from './Helpers.js';
@@ -136,7 +135,7 @@
             {translations.status?.device?.chip ?? "Chip"}: {sysinfo.chip} {#if sysinfo.cpu}({sysinfo.cpu}MHz){/if}
         </div>
         <div class="my-2">
-            {translations.status?.device?.device ?? "Device"}: <Link to="/vendor">{boardtype(sysinfo.chip, sysinfo.board)}</Link>
+            {translations.status?.device?.device ?? "Device"}: {boardtype(sysinfo.chip, sysinfo.board)}
         </div>
         <div class="my-2">
             {translations.status?.device?.mac ?? "MAC"}: {sysinfo.mac}

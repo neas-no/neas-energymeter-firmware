@@ -126,7 +126,6 @@ void AmsWebServer::setup(AmsConfiguration* config, GpioConfig* gpioConfig, AmsDa
 	server.on(context + F("/priceconfig"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
 	server.on(context + F("/status"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
 	server.on(context + F("/consent"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
-	server.on(context + F("/vendor"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
 	server.on(context + F("/setup"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
 	server.on(context + F("/welcome"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
 	server.on(context + F("/mqtt-ca"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
@@ -401,6 +400,8 @@ void AmsWebServer::sysinfoJson() {
 
 	SystemConfig sys;
 	config->getSystemConfig(sys);
+	sys.vendorConfigured = true;
+	config->setSystemConfig(sys);
 
 	uint32_t chipId;
 	#if defined(ESP32)
@@ -1347,23 +1348,6 @@ void AmsWebServer::handleSave() {
 	String reconnectIp = "";
 
 	bool success = true;
-	if(server.hasArg(F("v")) && server.arg(F("v")) == F("true")) {
-		int boardType = server.arg(F("vb")).toInt();
-		int hanPin = server.arg(F("vh")).toInt();
-
-		MeterConfig meterConfig;
-		config->getMeterConfig(meterConfig);
-		config->clearGpio(*gpioConfig);
-		hw->applyBoardConfig(boardType, *gpioConfig, meterConfig, hanPin);
-		if(success) {
-			config->setGpioConfig(*gpioConfig);
-			config->setMeterConfig(meterConfig);
-
-			sys.boardType = success ? boardType : 0xFF;
-			sys.vendorConfigured = success;
-			config->setSystemConfig(sys);
-		}
-	}
 
 	if(server.hasArg(F("s")) && server.arg(F("s")) == F("true")) {
 		MeterConfig meterConfig;
@@ -1436,7 +1420,7 @@ void AmsWebServer::handleSave() {
 			if(reconnectIp.length() == 0) {
 				probeNewNetworkIp(network, reconnectIp);
 			}
-			if(reconnectHost.length() == 0 && sys.vendorConfigured) {
+			if(reconnectHost.length() == 0) {
 				reconnectHost = defaultHostname;
 			}
 			
@@ -1887,10 +1871,7 @@ void AmsWebServer::handleSave() {
 	#endif
 	debugger->printf_P(PSTR("Saving configuration now...\n"));
 
-	// If vendor page and clear all config is selected
-	if(server.hasArg(F("v")) && server.arg(F("v")) == F("true") && server.hasArg(F("vr")) && server.arg(F("vr")) == F("true")) {
-		config->clear();
-	} else if(config->save()) {
+	if(config->save()) {
 		#if defined(AMS_REMOTE_DEBUG)
 		if (debugger->isActive(RemoteDebug::INFO))
 		#endif

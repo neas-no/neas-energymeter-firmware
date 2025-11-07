@@ -319,10 +319,17 @@ void setup() {
 			config.setMeterConfig(meterConfig);
 			config.setGpioConfig(gpioConfig);
 		}
+		if(!sysConfig.vendorConfigured) {
+			sysConfig.vendorConfigured = true;
+			if(sysConfig.boardType == 0 || sysConfig.boardType == 0xFF) {
+				sysConfig.boardType = 5;
+			}
+			config.setSystemConfig(sysConfig);
+		}
 	} else {
 		config.clearMeter(meterConfig);
-		sysConfig.boardType = 0;
-		sysConfig.vendorConfigured = false;
+		sysConfig.boardType = 5;
+		sysConfig.vendorConfigured = true;
 		sysConfig.userConfigured = false;
 		sysConfig.dataCollectionConsent = false;
 	}

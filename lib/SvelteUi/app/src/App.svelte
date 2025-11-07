@@ -25,7 +25,6 @@
   import Dashboard from "./lib/Dashboard.svelte";
   import ConfigurationPanel from "./lib/ConfigurationPanel.svelte";
   import StatusPage from "./lib/StatusPage.svelte";
-  import VendorPanel from "./lib/VendorPanel.svelte";
   import SetupPanel from "./lib/SetupPanel.svelte";
   import Welcome from "./lib/Welcome.svelte";
   import Mask from "./lib/Mask.svelte";
@@ -101,13 +100,6 @@
       const normalized = normalizePathname(window.location.pathname ?? "/");
       return normalized.replace(/^\/+/, "");
     })();
-
-    if (sysinfo.vndcfg === false) {
-      if (currentPath !== "vendor") {
-        navigate(basepath + "vendor");
-      }
-      return;
-    }
 
     if (sysinfo.usrcfg === false) {
       if (currentPath !== "setup" && currentPath !== "welcome") {
@@ -247,9 +239,6 @@
     </Route>
     <Route path="/setup">
       <SetupPanel {sysinfo} {data} />
-    </Route>
-    <Route path="/vendor">
-      <VendorPanel {sysinfo} {basepath} />
     </Route>
     <Route path="/edit-day">
       <DataEdit prefix="UTC Hour" data={dayPlot} url="/dayplot" {basepath} />

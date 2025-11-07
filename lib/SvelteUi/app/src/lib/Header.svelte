@@ -136,7 +136,7 @@
           fullTimeColor="text-red-500"
         />
       </div>
-      {#if sysinfo.vndcfg && sysinfo.usrcfg}
+  {#if sysinfo.usrcfg}
         <div
           class="flex-none px-1 mt-1 pt-[0.5rem]"
           title={translations.header?.config ?? ""}

@@ -11,7 +11,27 @@ bool HwTools::applyBoardConfig(uint8_t boardType, GpioConfig& gpioConfig, MeterC
         switch(boardType) {
             case 5: // Pow-K+
                 meterConfig.txPin = 9;
+                meterConfig.rxPin = 16;
+                gpioConfig.apPin = 0;
+                gpioConfig.ledPinRed = 13;
+                gpioConfig.ledPinGreen = 14;
+                gpioConfig.ledRgbInverted = true;
+                gpioConfig.vccPin = 10;
+                gpioConfig.vccResistorGnd = 22;
+                gpioConfig.vccResistorVcc = 33;
+                gpioConfig.ledDisablePin = 6;
+                return true;
             case 7: // Pow-U+
+                meterConfig.rxPin = 16;
+                gpioConfig.apPin = 0;
+                gpioConfig.ledPinRed = 13;
+                gpioConfig.ledPinGreen = 14;
+                gpioConfig.ledRgbInverted = true;
+                gpioConfig.vccPin = 10;
+                gpioConfig.vccResistorGnd = 22;
+                gpioConfig.vccResistorVcc = 33;
+                gpioConfig.ledDisablePin = 6;
+                return true;
             case 6: // Pow-P1
                 meterConfig.rxPin = 16;
                 gpioConfig.apPin = 0;

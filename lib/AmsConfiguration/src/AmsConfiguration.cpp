@@ -20,12 +20,8 @@ bool AmsConfiguration::getSystemConfig(SystemConfig& config) {
 		EEPROM.end();
 		return true;
 	} else {
-		if(configVersion == EEPROM_CLEARED_INDICATOR) {
-			config.vendorConfigured = true;
-		} else {
-			config.vendorConfigured = false;
-			config.boardType = 0xFF;
-		}
+		config.boardType = 5; // Default to Pow-K hardware
+		config.vendorConfigured = true;
 		config.userConfigured = false;
 		config.dataCollectionConsent = 0;
 		config.energyspeedometer = 0;
