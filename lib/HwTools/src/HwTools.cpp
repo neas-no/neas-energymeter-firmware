@@ -120,16 +120,9 @@ bool HwTools::applyBoardConfig(uint8_t boardType, GpioConfig& gpioConfig, MeterC
                 gpioConfig.ledPinGreen = 14;
                 gpioConfig.ledRgbInverted = true;
                 return true;
-            case 5: // Pow-K - Auto-detect optimal GPIO for meter type
-            case 7: // Pow-U - Auto-detect optimal GPIO for meter type
-                // Automatically select optimal HAN GPIO based on hardware capabilities
-                meterConfig.rxPin = getOptimalHanPin(boardType, hanPin);
-                // Debug: Log the selected GPIO pin for troubleshooting
-                #if defined(AMS_REMOTE_DEBUG)
-                Serial.printf("Auto-selected HAN GPIO: %d for board type %d (POW-%s)\n", 
-                             meterConfig.rxPin, boardType, 
-                             boardType == 5 ? "K" : boardType == 7 ? "U" : "?");
-                #endif
+            case 5: // Pow-K GPIO12
+            case 7: // Pow-U GPIO12
+                meterConfig.rxPin = 12;
                 gpioConfig.apPin = 0;
                 gpioConfig.ledPin = 2;
                 gpioConfig.ledInverted = true;
@@ -152,37 +145,6 @@ bool HwTools::applyBoardConfig(uint8_t boardType, GpioConfig& gpioConfig, MeterC
         }
     #endif
     return false;
-}
-
-uint8_t HwTools::getOptimalHanPin(uint8_t boardType, uint8_t requestedPin) {
-    // If a specific pin is requested via hanPin parameter, use it
-    if(requestedPin > 0 && requestedPin != 0xFF) {
-        return requestedPin;
-    }
-    
-    // Auto-select optimal GPIO based on board type and hardware-specific routing
-    #if defined(ESP8266)
-        switch(boardType) {
-            case 5: // Pow-K - Hardware uses GPIO16 as confirmed by PCB silkscreen
-                return 16; // GPIO16 - POW-K hardware-designated HAN port
-            case 7: // Pow-U - Hardware uses GPIO3 for UART0 compatibility
-                return 3;  // GPIO3 - POW-U UART0 RX for optimal signal integrity
-            default:
-                return 3;  // Default to UART0 for maximum compatibility
-        }
-    #elif defined(ESP32)
-        switch(boardType) {
-            case 5: // Pow-K+ (ESP32-S2) - Hardware uses GPIO16
-                return 16; // GPIO16 - hardware serial capable
-            case 7: // Pow-U+ (ESP32-S2) - Hardware uses GPIO16  
-                return 16; // GPIO16 - hardware serial capable
-            default:
-                return 16; // Default ESP32 choice
-        }
-    #endif
-    
-    // Ultimate fallback
-    return 3;
 }
 
 void HwTools::setup(SystemConfig* sys, GpioConfig* config) {
