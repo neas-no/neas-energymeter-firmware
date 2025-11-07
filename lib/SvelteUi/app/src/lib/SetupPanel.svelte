@@ -24,6 +24,10 @@
         createMeterStateFromConfiguration,
         describePresetSummary,
     } from "./meterPresets.js";
+    import {
+        detectMeterType,
+        getBestPresetRecommendation,
+    } from "./MeterDetectionService.js";
     import NeasLogo from "./../assets/neas_logotype_white.svg";
     import NeasLogoGreen from "./../assets/neas_logo_green.svg";
 
@@ -47,6 +51,8 @@
     let meterStateInitialized = false;
     let selectedMeterPresetId = "";
     let selectedMeterPreset = null;
+    let autoDetectionResults = null;
+    let showAutoDetection = false;
 
     const unsubscribeConfiguration = configurationStore.subscribe((update) => {
         configuration = update;
@@ -58,7 +64,17 @@
 
     onMount(() => {
         getConfiguration();
+
+        setTimeout(() => {
+            attemptAutoDetection();
+        }, 3000);
     });
+
+    // Monitor data changes for automatic detection
+    $: if (data && data.mt !== undefined && !showAutoDetection) {
+        // Re-run detection when new data arrives
+        setTimeout(() => attemptAutoDetection(), 500);
+    }
 
     onDestroy(() => {
         if (typeof unsubscribeConfiguration === "function") {
@@ -94,6 +110,60 @@
         if (configuration?.m) {
             meterState = createMeterStateFromConfiguration(configuration.m);
         }
+    }
+
+    function attemptAutoDetection() {
+        if (!data) return;
+
+        const meterData = {
+            meterId: data.id || "",
+            meterModel: data.model || "",
+        };
+
+        const commConfig = configuration?.m
+            ? {
+                  baud: configuration.m.b || 0,
+                  parity: getParityString(configuration.m.p || 0),
+                  invert: configuration.m.i || false,
+              }
+            : null;
+
+        // Use the live payload data for enhanced detection
+        autoDetectionResults = detectMeterType(meterData, commConfig, data);
+
+        if (
+            autoDetectionResults.confidence > 50 &&
+            autoDetectionResults.suggestedPresets.length > 0
+        ) {
+            showAutoDetection = true;
+        }
+    }
+
+    function getParityString(parityCode) {
+        const parityMap = {
+            2: "7N1",
+            3: "8N1",
+            7: "8N2",
+            10: "7E1",
+            11: "8E1",
+        };
+        return parityMap[parityCode] || "8E1";
+    }
+
+    function applyAutoDetectedPreset() {
+        if (
+            autoDetectionResults &&
+            autoDetectionResults.suggestedPresets.length > 0
+        ) {
+            const recommendedPresetId =
+                autoDetectionResults.suggestedPresets[0];
+            handlePresetSelection(recommendedPresetId);
+            showAutoDetection = false;
+        }
+    }
+
+    function dismissAutoDetection() {
+        showAutoDetection = false;
     }
 
     function buildMeterPayload() {
@@ -276,11 +346,21 @@
         : [];
 </script>
 
-<div class="min-h-screen bg-white sm:bg-neas-green flex flex-col items-center p-0 sm:p-4">
+<div
+    class="min-h-screen bg-white sm:bg-neas-green flex flex-col items-center p-0 sm:p-4"
+>
     <!-- Neas Logo -->
     <div class="mb-4 sm:mb-8 mt-8 sm:mt-0">
-        <img alt="Neas logo" src={NeasLogoGreen} class="w-36 h-auto sm:hidden" />
-        <img alt="Neas logo" src={NeasLogo} class="w-36 h-auto hidden sm:block" />
+        <img
+            alt="Neas logo"
+            src={NeasLogoGreen}
+            class="w-36 h-auto sm:hidden"
+        />
+        <img
+            alt="Neas logo"
+            src={NeasLogo}
+            class="w-36 h-auto hidden sm:block"
+        />
     </div>
 
     <!-- Main Card -->
@@ -313,8 +393,7 @@
                     <span
                         class="block text-sm font-medium text-neas-green dark:text-neas-green"
                     >
-                        {translations.conf?.connection?.ssid ??
-                            "Velg nettverk"}
+                        {translations.conf?.connection?.ssid ?? "Velg nettverk"}
                     </span>
                 </div>
                 {#if networks?.c == -1}
@@ -335,8 +414,10 @@
                         {#each networks.n as network, index (network.s ?? index)}
                             <label
                                 class="group flex items-center justify-between gap-4 rounded-2xl border-2 border-transparent bg-neas-gray px-5 py-4 shadow-sm transition hover:border-neas-lightgreen-70 hover:bg-white dark:bg-neas-gray dark:hover:bg-neas-lightgreen-70 cursor-pointer"
-                                class:border-neas-green={selectedSsid === network.s}
-                                class:border-transparent={selectedSsid !== network.s}
+                                class:border-neas-green={selectedSsid ===
+                                    network.s}
+                                class:border-transparent={selectedSsid !==
+                                    network.s}
                                 class:bg-white={selectedSsid === network.s}
                                 class:shadow-lg={selectedSsid === network.s}
                             >
@@ -352,7 +433,9 @@
                                         required={connectionMode == 1 ||
                                             connectionMode == 2}
                                     />
-                                    <span class="min-w-0 flex-1 text-neas-green dark:text-neas-green font-medium truncate">
+                                    <span
+                                        class="min-w-0 flex-1 text-neas-green dark:text-neas-green font-medium truncate"
+                                    >
                                         {network.s ||
                                             (translations.conf?.connection
                                                 ?.hidden_ssid ??
@@ -368,11 +451,11 @@
                                             WIFI_ICON_MAP.off}
                                         alt={networkSignalInfos[index]?.title ??
                                             "Wi-Fi frakoblet"}
-                                        title={networkSignalInfos[index]?.rssi !=
-                                        null
+                                        title={networkSignalInfos[index]
+                                            ?.rssi != null
                                             ? `${networkSignalInfos[index]?.title ?? "Wi-Fi frakoblet"} (${networkSignalInfos[index].rssi} dBm)`
-                                            : networkSignalInfos[index]?.title ??
-                                                "Wi-Fi frakoblet"}
+                                            : (networkSignalInfos[index]
+                                                  ?.title ?? "Wi-Fi frakoblet")}
                                     />
                                 </div>
                             </label>
@@ -422,6 +505,83 @@
                     required={connectionMode == 2}
                 />
             </div>
+
+            <!-- Auto-Detection Results -->
+            {#if showAutoDetection && autoDetectionResults}
+                <div
+                    class="mb-6 rounded-2xl bg-green-50 border border-green-200 p-5 shadow-sm"
+                >
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0">
+                            <svg
+                                class="w-6 h-6 text-green-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-medium text-green-800 mb-2">
+                                Måler oppdaget automatisk!
+                            </h3>
+                            <p class="text-sm text-green-700 mb-3">
+                                Vi har oppdaget en {autoDetectionResults.detectedManufacturer ||
+                                    "ukjent"} måler
+                                {#if autoDetectionResults.detectedModel}
+                                    (modell: {autoDetectionResults.detectedModel})
+                                {/if}
+                                med {autoDetectionResults.confidence}%
+                                sikkerhet.
+                            </p>
+                            {#if data?.mt}
+                                <p class="text-xs text-green-600 mb-2">
+                                    Målertype fra payload: {data.mt}
+                                    {#if data?.ds}
+                                        | Distribusjonssystem: {data.ds}{/if}
+                                    {#if data?.hm !== undefined}
+                                        | HAN-status: {data.hm}{/if}
+                                </p>
+                            {/if}
+                            {#if autoDetectionResults.reasoning.length > 0}
+                                <details class="text-xs text-green-600 mb-3">
+                                    <summary
+                                        class="cursor-pointer hover:text-green-800"
+                                        >Vis detaljer</summary
+                                    >
+                                    <ul class="mt-2 space-y-1 pl-4">
+                                        {#each autoDetectionResults.reasoning as reason}
+                                            <li>• {reason}</li>
+                                        {/each}
+                                    </ul>
+                                </details>
+                            {/if}
+                            <div class="flex gap-2">
+                                <button
+                                    type="button"
+                                    class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded-full transition-colors"
+                                    on:click={applyAutoDetectedPreset}
+                                >
+                                    Bruk anbefalte innstillinger
+                                </button>
+                                <button
+                                    type="button"
+                                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium py-2 px-4 rounded-full transition-colors"
+                                    on:click={dismissAutoDetection}
+                                >
+                                    Avvis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {/if}
 
             <!-- Submit Button -->
             <div class="text-center">
