@@ -128,6 +128,8 @@ void AmsWebServer::setup(AmsConfiguration* config, GpioConfig* gpioConfig, AmsDa
 	server.on(context + F("/consent"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
 	server.on(context + F("/setup"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
 	server.on(context + F("/welcome"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
+	server.on(context + F("/velkommen"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
+	server.on(context + F("/dashboard"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
 	server.on(context + F("/mqtt-ca"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
 	server.on(context + F("/mqtt-cert"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
 	server.on(context + F("/mqtt-key"), HTTP_GET, std::bind(&AmsWebServer::indexHtml, this));
@@ -323,24 +325,11 @@ debugger->printf_P(PSTR("URI '%s' was not found\n"), server.uri().c_str());
 }
 
 void AmsWebServer::captivePortalProbe() {
-	String target = String(F("http://")) + WiFi.softAPIP().toString();
-	config->getWebConfig(webConfig);
-	stripNonAscii((uint8_t*) webConfig.context, 32);
-	if(strlen(webConfig.context) > 0) {
-		String context = String(webConfig.context);
-		context.replace(" ", "");
-		if(!context.isEmpty()) {
-			target += "/";
-			target += context;
-		}
-	}
-	target += F("/welcome");
-
-	server.sendHeader(HEADER_LOCATION, target, true);
 	server.sendHeader(HEADER_CACHE_CONTROL, CACHE_CONTROL_NO_CACHE);
 	server.sendHeader(HEADER_PRAGMA, PRAGMA_NO_CACHE);
 	server.sendHeader(HEADER_EXPIRES, EXPIRES_OFF);
-	server.send(302, MIME_PLAIN, "");
+	server.setContentLength(0);
+	server.send(204);
 }
 
 void AmsWebServer::faviconSvg() {

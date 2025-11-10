@@ -47,3 +47,18 @@ pio run -t upload -e esp32s2
 To finish it off, go to the flash-updater site [here](https://www.amsleser.cloud/flasher) and update to latest version to ensure a new firmware download
 
 **Doing this will result in all data being deleted, and needing to setup the board from scratch**
+
+# How to access dashboard/config?
+In this version of the firmware we only want those who understands this device to have access to chaning the firmware settings/config, as using MQTT to Minside is most benefitial for both developer and costumer. If you want to access the dashboard you need to change the url from: 
+
+```
+"IP"/velkommen
+```
+
+to:
+
+```
+"IP"/dashboard
+```
+
+This will allow you to have developer access to the firmware, useful for debugging and fixing a broken device. 

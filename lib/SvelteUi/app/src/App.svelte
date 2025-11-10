@@ -26,7 +26,7 @@
   import ConfigurationPanel from "./lib/ConfigurationPanel.svelte";
   import StatusPage from "./lib/StatusPage.svelte";
   import SetupPanel from "./lib/SetupPanel.svelte";
-  import Welcome from "./lib/Welcome.svelte";
+  import SuccessPage from "./lib/SuccessPage.svelte";
   import Mask from "./lib/Mask.svelte";
   import FileUploadComponent from "./lib/FileUploadComponent.svelte";
   import PriceConfig from "./lib/PriceConfig.svelte";
@@ -36,6 +36,16 @@
 
   let basepath = document.getElementsByTagName("base")[0].getAttribute("href");
   if (!basepath) basepath = "/";
+
+  let developerMode = false;
+  if (typeof window !== "undefined") {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      developerMode = params.get("developer") === "1";
+    } catch (err) {
+      developerMode = false;
+    }
+  }
 
   getTranslations("no");
 
@@ -93,6 +103,16 @@
     return normalized || "/";
   };
 
+  const headerFriendlyPaths = [
+    "/dashboard",
+    "/configuration",
+    "/status",
+    "/priceconfig",
+    "/mqtt-ca",
+    "/mqtt-cert",
+    "/mqtt-key",
+  ];
+
   sysinfoStore.subscribe((update) => {
     sysinfo = update;
     const currentPath = (() => {
@@ -101,11 +121,16 @@
       return normalized.replace(/^\/+/, "");
     })();
 
-    if (sysinfo.usrcfg === false) {
-      if (currentPath !== "setup" && currentPath !== "welcome") {
-        navigate(basepath + "welcome");
+    const isConfigured = sysinfo?.usrcfg === true;
+
+    if (!developerMode) {
+      if (sysinfo?.usrcfg === false) {
+        if (currentPath !== "setup") {
+          navigate(basepath + "setup", { replace: true });
+        }
+      } else if (isConfigured && (currentPath === "" || currentPath === "/" || currentPath === "setup")) {
+        navigate(basepath + "velkommen", { replace: true });
       }
-      return;
     }
 
     if (sysinfo.ui.k === 1) {
@@ -157,8 +182,12 @@
       ? normalizePathname(window.location.pathname ?? "/")
       : "/";
 
-  const shouldHideHeaderPath = (pathname = "/") =>
-    pathname === "/setup" || pathname === "/welcome";
+  const shouldHideHeaderPath = (pathname = "/") => {
+    if (developerMode) {
+      return pathname === "/setup" || pathname === "/velkommen";
+    }
+    return !headerFriendlyPaths.includes(pathname);
+  };
 
   const updateCurrentPathname = () => {
     if (typeof window !== "undefined") {
@@ -202,50 +231,101 @@
 <div class="container mx-auto m-3">
   <Router {basepath}>
     {#if !hideHeader}
-      <Header {data} {basepath} />
+      <Header {data} {basepath} {developerMode} />
     {/if}
-    <Route path="/welcome">
-      <Welcome {basepath} />
-    </Route>
-    <Route path="/">
-      <Dashboard
-        {data}
-        {sysinfo}
-        {prices}
-        {dayPlot}
-        {monthPlot}
-        {temperatures}
-        {translations}
-        {tariffData}
-      />
-    </Route>
-    <Route path="/configuration">
-      <ConfigurationPanel {sysinfo} {basepath} {data} />
-    </Route>
-    <Route path="/priceconfig">
-      <PriceConfig {basepath} />
-    </Route>
-    <Route path="/status">
-      <StatusPage {sysinfo} {data} />
-    </Route>
-    <Route path="/mqtt-ca">
-      <FileUploadComponent title="CA" action="/mqtt-ca" />
-    </Route>
-    <Route path="/mqtt-cert">
-      <FileUploadComponent title="certificate" action="/mqtt-cert" />
-    </Route>
-    <Route path="/mqtt-key">
-      <FileUploadComponent title="private key" action="/mqtt-key" />
-    </Route>
-    <Route path="/setup">
-      <SetupPanel {sysinfo} {data} />
-    </Route>
-    <Route path="/edit-day">
-      <DataEdit prefix="UTC Hour" data={dayPlot} url="/dayplot" {basepath} />
-    </Route>
-    <Route path="/edit-month">
-      <DataEdit prefix="Day" data={monthPlot} url="/monthplot" {basepath} />
-    </Route>
+    {#if developerMode}
+      <Route path="/">
+        <Dashboard
+          {data}
+          {sysinfo}
+          {prices}
+          {dayPlot}
+          {monthPlot}
+          {temperatures}
+          {translations}
+          {tariffData}
+        />
+      </Route>
+        <Route path="/dashboard">
+          <Dashboard
+            {data}
+            {sysinfo}
+            {prices}
+            {dayPlot}
+            {monthPlot}
+            {temperatures}
+            {translations}
+            {tariffData}
+          />
+        </Route>
+      <Route path="/configuration">
+        <ConfigurationPanel {sysinfo} {basepath} {data} />
+      </Route>
+      <Route path="/priceconfig">
+        <PriceConfig {basepath} />
+      </Route>
+      <Route path="/status">
+        <StatusPage {sysinfo} {data} />
+      </Route>
+      <Route path="/mqtt-ca">
+        <FileUploadComponent title="CA" action="/mqtt-ca" />
+      </Route>
+      <Route path="/mqtt-cert">
+        <FileUploadComponent title="certificate" action="/mqtt-cert" />
+      </Route>
+      <Route path="/mqtt-key">
+        <FileUploadComponent title="private key" action="/mqtt-key" />
+      </Route>
+      <Route path="/setup">
+        <SetupPanel {sysinfo} {data} />
+      </Route>
+      <Route path="/velkommen">
+        <SuccessPage />
+      </Route>
+      <Route path="/edit-day">
+        <DataEdit prefix="UTC Hour" data={dayPlot} url="/dayplot" {basepath} />
+      </Route>
+      <Route path="/edit-month">
+        <DataEdit prefix="Day" data={monthPlot} url="/monthplot" {basepath} />
+      </Route>
+    {:else}
+      <Route path="/setup">
+        <SetupPanel {sysinfo} {data} />
+      </Route>
+      <Route path="/dashboard">
+        <Dashboard
+          {data}
+          {sysinfo}
+          {prices}
+          {dayPlot}
+          {monthPlot}
+          {temperatures}
+          {translations}
+          {tariffData}
+        />
+      </Route>
+      <Route path="/configuration">
+        <ConfigurationPanel {sysinfo} {basepath} {data} />
+      </Route>
+      <Route path="/status">
+        <StatusPage {sysinfo} {data} />
+      </Route>
+      <Route path="/velkommen">
+        <SuccessPage />
+      </Route>
+      <Route path="*">
+        <Dashboard
+          {data}
+          {sysinfo}
+          {prices}
+          {dayPlot}
+          {monthPlot}
+          {temperatures}
+          {translations}
+          {tariffData}
+        />
+      </Route>
+    {/if}
   </Router>
 
   {#if sysinfo.booting}
