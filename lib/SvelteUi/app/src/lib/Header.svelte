@@ -35,6 +35,7 @@
 
   export const basepath = "/";
   export let data = {};
+  export let developerMode = false;
   let sysinfo = {};
 
   function askUpgrade() {
@@ -80,7 +81,7 @@
 <nav class="bg-neas-green-90 rounded-md">
   <div class="flex flex-wrap space-x-4 text-l text-neas-gray">
     <div class="flex text-xl text-neas-gray p-2 flex-auto">
-      <Link to="/" class="flex items-center">
+      <Link to={developerMode ? "/" : "/dashboard"} class="flex items-center">
         <img class="w-36 h-auto" alt="Neas logo" src={NeasLogo} />
       </Link>
     </div>
@@ -117,7 +118,7 @@
           ": " +
           (translations.errors?.mqtt?.[data.me] ?? data.me)}
       </div>
-    {/if}a
+    {/if}
     {#if data.ee > 0 || data.ee < 0}
       <div class="bd-red">
         {(translations.header?.price ?? "PS") +

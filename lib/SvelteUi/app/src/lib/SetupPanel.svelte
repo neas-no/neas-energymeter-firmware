@@ -7,7 +7,6 @@
     import Mask from "./Mask.svelte";
     import SubnetOptions from "./SubnetOptions.svelte";
     import {
-        scanForDevice,
         charAndNumPattern,
         asciiPatternExt,
         ipPattern,
@@ -208,16 +207,9 @@
     let staticIp = false;
     let connectionMode = 1;
     let loadingOrSaving = false;
-    let reconnectTargets = [];
     let networkSignalInfos = [];
     let selectedSsid = "";
-
-    function updateSysinfo(url) {
-        sysinfoStore.update((s) => {
-            s.trying = url;
-            return s;
-        });
-    }
+    let showPassword = false;
 
     async function handleSubmit(e) {
         loadingOrSaving = true;
@@ -292,7 +284,6 @@
                 ),
             ),
         );
-        reconnectTargets = res.reboot ? [...uniqueTargets] : [];
 
         sysinfoStore.update((s) => {
             if (!s.net) s.net = {};
@@ -317,6 +308,7 @@
                 s.net.ip = hintIp;
             }
             s.targets = [...uniqueTargets];
+            s.trying = uniqueTargets[0] ?? null;
             s.usrcfg = res.success;
             s.booting = res.reboot;
             return s;
@@ -324,9 +316,6 @@
 
         const latestSysinfo = get(sysinfoStore);
         sysinfo = latestSysinfo;
-        if (res.reboot) {
-            setTimeout(() => scanForDevice(latestSysinfo, updateSysinfo), 5000);
-        }
     }
     $: {
         const { level, label } = wifiStateFromRssi(data?.r);
@@ -365,7 +354,7 @@
 
     <!-- Main Card -->
     <div
-        class="bg-white dark:white border-0 sm:border sm:border-neas-lightgreen-30 shadow-none sm:shadow-xl sm:shadow-black/10 rounded-none sm:rounded-3xl max-w-none sm:max-w-md w-full flex-1 sm:flex-none p-6 sm:p-8"
+        class="bg-white dark:white border-0 sm:border sm:border-neas-lightgreen-30 shadow-none sm:shadow-xl sm:shadow-black/10 rounded-none sm:rounded-3xl max-w-none sm:max-w-md w-full flex-1 sm:flex-none p-6 sm:p-8 mb-40"
     >
         <form on:submit|preventDefault={handleSubmit}>
             <input type="hidden" name="s" value="true" />
@@ -379,11 +368,10 @@
             <!-- Title -->
             <div class="text-center mb-8">
                 <h1 class="text-2xl font-semibold text-neas-green mb-2">
-                    {translations.setup?.title ?? "WiFi-oppsett"}
+                    {"WiFi-oppsett"}
                 </h1>
                 <p class="text-sm text-black">
-                    {translations.setup?.subtitle ??
-                        "Koble enheten til internett"}
+                    {"Koble enheten til internett"}
                 </p>
             </div>
 
@@ -393,7 +381,7 @@
                     <span
                         class="block text-sm font-medium text-neas-green dark:text-neas-green"
                     >
-                        {translations.conf?.connection?.ssid ?? "Velg nettverk"}
+                        {"Velg nettverk"}
                     </span>
                 </div>
                 {#if networks?.c == -1}
@@ -404,8 +392,7 @@
                             class="animate-spin rounded-full h-6 w-6 border-b-2 border-neas-green mr-3"
                         ></div>
                         <span class="text-sm font-medium"
-                            >{translations.conf?.connection?.searching ??
-                                "Søker etter nettverk..."}</span
+                            >{"Søker etter nettverk..."}</span
                         >
                     </div>
                 {/if}
@@ -436,10 +423,7 @@
                                     <span
                                         class="min-w-0 flex-1 text-neas-green dark:text-neas-green font-medium truncate"
                                     >
-                                        {network.s ||
-                                            (translations.conf?.connection
-                                                ?.hidden_ssid ??
-                                                "Skjult nettverk")}
+                                        {network.s || "Skjult nettverk"}
                                     </span>
                                 </span>
                                 <div
@@ -479,8 +463,7 @@
                             />
                         </svg>
                         <p class="text-sm font-medium">
-                            {translations.conf?.connection?.no_networks ??
-                                "Ingen nettverk funnet"}
+                            {"Ingen nettverk funnet"}
                         </p>
                     </div>
                 {/if}
@@ -491,19 +474,47 @@
                     for="wifi-password"
                     class="block text-sm font-medium text-neas-green dark:text-neas-green mb-2"
                 >
-                    {translations.conf?.connection?.psk ?? "WiFi-passord"}
+                    {"WiFi-passord"}
                 </label>
-                <input
-                    id="wifi-password"
-                    name="sp"
-                    type="password"
-                    pattern={asciiPatternExt}
-                    class="w-full px-4 py-3 rounded-xl bg-neas-gray dark:bg-neas-gray text-neas-green dark:text-neas-green border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-neas-green focus:border-neas-green transition-colors shadow-sm"
-                    placeholder={translations.conf?.connection
-                        ?.password_placeholder ?? "Skriv inn WiFi-passord"}
-                    autocomplete="off"
-                    required={connectionMode == 2}
-                />
+                <div class="relative">
+                    <input
+                        id="wifi-password"
+                        name="sp"
+                        type={showPassword ? "text" : "password"}
+                        pattern={asciiPatternExt}
+                        class="w-full px-4 py-3 pr-12 rounded-xl bg-neas-gray dark:bg-neas-gray text-neas-green dark:text-neas-green border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-neas-green focus:border-neas-green transition-colors shadow-sm"
+                        placeholder={"Skriv inn WiFi-passord"}
+                        autocomplete="off"
+                        required={connectionMode == 2}
+                    />
+                    <button
+                        type="button"
+                        class="absolute inset-y-0 right-3 flex items-center text-neas-green hover:text-neas-green-90"
+                        on:click={() => (showPassword = !showPassword)}
+                        aria-label={showPassword ? "Skjul passord" : "Vis passord"}
+                    >
+                        {#if showPassword}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.063.165-2.087.47-3.05M6.162 6.166A9.967 9.967 0 0112 5c5.523 0 10 4.477 10 10 0 1.092-.174 2.142-.496 3.125M3 3l18 18"
+                                />
+                            </svg>
+                        {:else}
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        {/if}
+                    </button>
+                </div>
             </div>
 
             <!-- Auto-Detection Results -->
@@ -589,63 +600,14 @@
                     type="submit"
                     class="w-full bg-neas-green hover:bg-neas-green-90 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
                 >
-                    {"Koble til og fortsett"}
+                    {"Koble til"}
                 </button>
             </div>
-            {#if reconnectTargets.length}
-                <div
-                    class="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
-                >
-                    <div class="flex items-start">
-                        <svg
-                            class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 mr-3 flex-shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-                        <div>
-                            <h4
-                                class="text-sm font-medium text-green-800 dark:text-green-200 mb-2"
-                            >
-                                {translations.setup?.reconnect?.title ??
-                                    "Oppsett fullført!"}
-                            </h4>
-                            <p
-                                class="text-sm text-green-700 dark:text-green-300 mb-3"
-                            >
-                                {translations.setup?.reconnect?.info ??
-                                    "Enheten starter på nytt og prøver å koble til på følgende adresser:"}
-                            </p>
-                            <div class="space-y-1">
-                                {#each reconnectTargets as target}
-                                    <div class="flex items-center">
-                                        <code
-                                            class="text-xs bg-green-100 dark:bg-green-800/50 text-green-800 dark:text-green-200 px-2 py-1 rounded font-mono"
-                                        >
-                                            {target.startsWith("http://") ||
-                                            target.startsWith("https://")
-                                                ? target
-                                                : `http://${target}`}
-                                        </code>
-                                    </div>
-                                {/each}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {/if}
         </form>
     </div>
 </div>
 
 <Mask
     active={loadingOrSaving}
-    message={translations.setup?.mask ?? "Kobler til..."}
+    message={"Kobler til..."}
 />

@@ -28,6 +28,21 @@ For more information, please refer to our [LICENSE](/LICENSE) file.
 
 If your usage falls outside the scope of this license and you require a separate license, please contact us at [post@utilitech.no](mailto:post@utilitech.no) for further details.
 
+
+# How to access dashboard/config?
+In this version of the firmware we only want those who understands this device to have access to chaning the firmware settings/config, as using MQTT to Minside is most benefitial for both developer and costumer. If you want to access the dashboard you need to change the url from: 
+```
+"IP"/velkommen
+```
+
+to:
+```
+"IP"/dashboard
+```
+
+This will allow you to have developer access to the firmware, useful for debugging and fixing a broken device. 
+
+
 # How to wipe bricked firmware?
 
 To wipe the board you need to set it in USB mode. Connect the board to a usb board on you computor, hold AP/Prog button and shortly click reset before letting go of AP/Prog. To check if device is in usb mode you can check connections on this [site](https://www.amsleser.cloud/flasher)
