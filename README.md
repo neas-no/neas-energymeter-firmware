@@ -19,15 +19,6 @@ It is recommended to use Visual Studio Code with the PlatformIO plugin for devel
 
 For development purposes, copy the ```platformio-user.ini-example``` to ```platformio-user.ini``` and customize to your preference. The code will adapt to the platform and board set in your profile.
 
-## Licensing
-Initially, this project began as a hobby, consuming countless hours of our spare time. However, the time required to support this project has expanded beyond the scope of a hobby. As a result, we established ‘Utilitech’, a company dedicated to maintaining the software and hardware for this project as part of our regular work.
-
-To ensure the sustainability of our venture, we have opted to license our software under the [Fair Source License] (https://fair.io). This approach allows the software to remain free for personal use, while also ensuring full transparency of our code’s inner workings. It also prevents competitors from exploiting our work without contributing to the maintenance of the code or providing technical support to end users.
-
-For more information, please refer to our [LICENSE](/LICENSE) file.
-
-If your usage falls outside the scope of this license and you require a separate license, please contact us at [post@utilitech.no](mailto:post@utilitech.no) for further details.
-
 
 # How to access dashboard/config?
 In this version of the firmware we only want those who understands this device to have access to chaning the firmware settings/config, as using MQTT to Minside is most benefitial for both developer and costumer. If you want to access the dashboard you need to change the url from: 

@@ -6,9 +6,8 @@
 // Update these values to point the device towards the firmware feed that serves
 // your customised builds. The defaults target the Neas firmware distribution.
 // ----------------------------------------------------------------------------
-
 #ifndef FIRMWARE_UPDATE_BASE_URL
-#define FIRMWARE_UPDATE_BASE_URL "https://eivindh06.github.io/neas-energymeter-firmware/"
+#define FIRMWARE_UPDATE_BASE_URL "https://han-port.neas.no/"
 #endif
 
 #ifndef FIRMWARE_UPDATE_CHANNEL
